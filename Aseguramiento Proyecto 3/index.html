@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipe AI - Generador de Recetas</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #F5EFE6;
+            color: #000;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: #F5EFE6;
+            padding: 1.5rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #000;
+        }
+
+        .logo {
+            font-size: 1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            width: 24px;
+            height: 24px;
+            background: #000;
+            border-radius: 50%;
+        }
+
+        .nav {
+            display: flex;
+            gap: 2.5rem;
+        }
+
+        .nav a {
+            color: #000;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .signup-btn {
+            background: #000;
+            color: #fff;
+            padding: 0.7rem 2rem;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .container {
+            display: flex;
+            height: calc(100vh - 80px);
+        }
+
+        .left-panel {
+            flex: 0.65;
+            background: #F5EFE6;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title-section {
+            margin-bottom: 2rem;
+        }
+
+        .main-title {
+            font-size: 5rem;
+            font-weight: 900;
+            line-height: 0.9;
+            letter-spacing: -0.02em;
+            font-style: italic;
+            position: relative;
+        }
+
+        .pro-badge {
+            position: absolute;
+            top: -20px;
+            right: -60px;
+            background: #C7E65B;
+            color: #000;
+            padding: 1rem 1.5rem;
+            font-weight: 900;
+            font-size: 1.2rem;
+            transform: rotate(-5deg);
+            clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+        }
+
+        .chat-container {
+            flex: 1;
+            background: #fff;
+            border: 3px solid #000;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 8px 8px 0 rgba(0,0,0,0.1);
+            max-height: 750px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .message {
+            padding: 1rem 1.2rem;
+            border-radius: 15px;
+            max-width: 80%;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .user-message {
+            background: #000;
+            color: #fff;
+            align-self: flex-end;
+            font-weight: 500;
+        }
+
+        .ai-message {
+            background: #F0F0F0;
+            color: #000;
+            align-self: flex-start;
+            border: 2px solid #000;
+            max-width: 85%;
+        }
+
+        .recipe-title {
+            font-size: 1.3rem;
+            font-weight: 900;
+            font-style: italic;
+            margin-bottom: 0.8rem;
+            color: #000;
+        }
+
+        .recipe-meta {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .recipe-section {
+            margin: 1rem 0;
+        }
+
+        .recipe-section-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: #000;
+        }
+
+        .recipe-list {
+            margin: 0;
+            padding-left: 1.2rem;
+        }
+
+        .recipe-list li {
+            margin: 0.3rem 0;
+            line-height: 1.6;
+        }
+
+        .recipe-note {
+            background: #FFF9E6;
+            border-left: 4px solid #C7E65B;
+            padding: 0.8rem;
+            margin-top: 1rem;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            display: flex;
+            gap: 0.4rem;
+            padding: 1rem 1.2rem;
+            background: #F0F0F0;
+            border: 2px solid #000;
+            border-radius: 15px;
+            width: fit-content;
+        }
+
+        .loading-dot {
+            width: 8px;
+            height: 8px;
+            background: #000;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        .chat-input-container {
+            padding: 1.5rem;
+            background: #fff;
+            border-top: 2px solid #000;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .quick-btn {
+            background: #F5EFE6;
+            border: 2px solid #000;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            background: #C7E65B;
+            transform: translateY(-2px);
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 1rem;
+            border: 2px solid #000;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .send-btn {
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+            transition: transform 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .right-panel {
+            flex: 0.35;
+            background: #B4A5D9;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            position: relative;
+        }
+
+        .category-card {
+            padding: 1.5rem;
+            border: 3px solid #000;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .category-card:hover {
+            transform: translateX(-5px);
+        }
+
+        .category-card.salads {
+            background: #B4A5D9;
+        }
+
+        .category-card.drinks {
+            background: #C7E65B;
+        }
+
+        .category-card.foods {
+            background: #FF6B35;
+        }
+
+        .category-label {
+            font-size: 2rem;
+            font-weight: 900;
+            font-style: italic;
+            color: #000;
+        }
+
+        .category-image {
+            width: 120px;
+            height: 80px;
+            border: 3px solid #000;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+
+        .stats-card {
+            background: #F5EFE6;
+            padding: 2rem;
+            border: 3px solid #000;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .stats-number {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #000;
+        }
+
+        .stats-label {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+            color: #000;
+        }
+
+        .stats-sublabel {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #000;
+            margin-top: 0.3rem;
+        }
+
+        .accent-strip {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 60px;
+            height: 100%;
+            background: #C7E65B;
+            z-index: 0;
+        }
+
+        .banner {
+            position: absolute;
+            bottom: 2rem;
+            left: -5%;
+            right: -5%;
+            background: #000;
+            color: #fff;
+            padding: 1rem 2rem;
+            transform: rotate(-2deg);
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-style: italic;
+            text-align: center;
+            z-index: 1;
+        }
+
+        @media (max-width: 1200px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .right-panel {
+                width: 100%;
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+
+            .main-title {
+                font-size: 3.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .nav {
+                display: none;
+            }
+
+            .main-title {
+                font-size: 2.5rem;
+            }
+
+            .left-panel {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="accent-strip"></div>
+
+    <header class="header">
+        <div class="logo">
+            <div class="logo-icon"></div>
+            <span>MY RECIPES</span>
+        </div>
+        <nav class="nav">
+            <a href="#home">HOME</a>
+            <a href="#recipes">RECIPES</a>
+            <a href="#features">FEATURES</a>
+            <a href="#contact">CONTACT</a>
+        </nav>
+        <button class="signup-btn">SIGNUP</button>
+    </header>
+
+    <div class="container">
+        <div class="left-panel">
+            <div class="title-section">
+                <h1 class="main-title">
+                    FOOD<br>RECIPES
+                </h1>
+            </div>
+
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message ai-message">
+                        Hola! Soy tu Chef IA. Dime qué ingredientes tienes o si necesitas recetas para alguna condición de salud especial.
+                    </div>
+                </div>
+
+                <div class="chat-input-container">
+                    <div class="quick-actions">
+                        <button class="quick-btn" onclick="sendQuickMessage('Tengo pollo, arroz y verduras')">Pollo + Arroz</button>
+                        <button class="quick-btn" onclick="sendQuickMessage('Recetas para diabetes')">Diabetes</button>
+                        <button class="quick-btn" onclick="sendQuickMessage('Recetas vegetarianas')">Vegetariano</button>
+                        <button class="quick-btn" onclick="sendQuickMessage('Recetas bajas en sodio')">Bajo sodio</button>
+                    </div>
+                    <div class="input-wrapper">
+                        <input 
+                            type="text" 
+                            id="userInput" 
+                            class="chat-input" 
+                            placeholder="Escribe ingredientes o condiciones de salud..."
+                            onkeypress="if(event.key==='Enter') sendMessage()"
+                        >
+                        <button class="send-btn" id="sendBtn" onclick="sendMessage()">ENVIAR</button>
+                    </div>
+                </div>
+            </div>
+
+            
+        </div>
+
+        <div class="right-panel">
+            <div class="category-card salads" onclick="sendQuickMessage('Dame recetas de ensaladas saludables')">
+                <span class="category-label">Salads</span>
+                <img src="/Salada de atum nutritiva.jpg" alt="Salads" class="category-image">
+            </div>
+
+            <div class="category-card drinks" onclick="sendQuickMessage('Dame recetas de bebidas saludables')">
+                <span class="category-label">Drinks</span>
+                <img src="/Banana Cherry Smoothie - All the Healthy Things.jpg" alt="Drinks" class="category-image">
+            </div>
+
+            <div class="category-card foods" onclick="sendQuickMessage('Dame recetas de comidas principales')">
+                <span class="category-label">Foods</span>
+                <img src="/descarga.jpg" alt="Foods" class="category-image">
+            </div>
+
+            <div class="stats-card">
+                <div class="stats-number">+500</div>
+                <div class="stats-label">Food Recipes</div>
+                <div class="stats-sublabel">All around the world</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = 'AIzaSyDlV9nSIBYTn-Y2TbrD2fl1nRUpHS3xYZs';
+        const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+
+        function addMessage(content, isUser, isHTML = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+            
+            if (isHTML) {
+                messageDiv.innerHTML = content;
+            } else {
+                messageDiv.textContent = content;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function formatRecipe(text) {
+            let formatted = text;
+            
+            formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            
+            formatted = formatted.replace(/📋\s*(.+?)(?=\n|$)/g, '<div class="recipe-title">$1</div>');
+            
+            formatted = formatted.replace(/(⏱️|👥)\s*([^\n]+)/g, '<span style="font-weight: 600;">$1 $2</span>');
+            
+            formatted = formatted.replace(/(🥘|👨‍🍳|💡|⚠️)\s*([^:]+):/g, '<div class="recipe-section-title">$1 $2:</div>');
+            
+            const lines = formatted.split('\n');
+            let inList = false;
+            let result = '';
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                if (line.match(/^[-•]\s/) || line.match(/^\d+\.\s/)) {
+                    if (!inList) {
+                        result += '<ul class="recipe-list">';
+                        inList = true;
+                    }
+                    result += '<li>' + line.replace(/^[-•]\s/, '').replace(/^\d+\.\s/, '') + '</li>';
+                } else {
+                    if (inList) {
+                        result += '</ul>';
+                        inList = false;
+                    }
+                    result += line + '\n';
+                }
+            }
+            
+            if (inList) {
+                result += '</ul>';
+            }
+            
+            return result;
+        }
+
+        function showLoading() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.id = 'loading';
+            loadingDiv.innerHTML = `
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+                <div class="loading-dot"></div>
+            `;
+            chatMessages.appendChild(loadingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideLoading() {
+            const loading = document.getElementById('loading');
+            if (loading) loading.remove();
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, true);
+            userInput.value = '';
+            sendBtn.disabled = true;
+
+            showLoading();
+
+            try {
+                const prompt = `Eres un chef experto en nutrición. El usuario dice: "${message}". 
+
+Si menciona ingredientes, genera una receta creativa y detallada usando esos ingredientes.
+Si menciona una enfermedad o condición de salud (diabetes, hipertensión, celiaquía, etc.), proporciona recetas apropiadas y seguras para esa condición.
+
+Formato de respuesta:
+📋 Nombre de la Receta
+⏱️ Tiempo: X minutos
+👥 Porciones: X
+
+🥘 INGREDIENTES:
+- Lista los ingredientes con cantidades específicas
+- Sé claro y preciso
+
+👨‍🍳 PREPARACIÓN:
+1. Paso detallado
+2. Instrucciones claras y numeradas
+3. Tiempo estimado por paso si es relevante
+
+💡 CONSEJOS:
+- Tips útiles para mejorar el resultado
+- Variaciones posibles
+
+⚠️ NOTAS DE SALUD:
+- Si aplica para condiciones médicas, menciona beneficios específicos
+- Advertencias si es necesario
+
+Sé específico, claro y motivador. Usa el formato EXACTO con los emojis indicados.`;
+
+                const response = await fetch(`${API_URL}?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: prompt
+                            }]
+                        }]
+                    })
+                });
+
+                const data = await response.json();
+                hideLoading();
+
+                if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+                    const aiResponse = data.candidates[0].content.parts[0].text;
+                    const formattedResponse = formatRecipe(aiResponse);
+                    addMessage(formattedResponse, false, true);
+                } else {
+                    addMessage('Lo siento, hubo un error al generar la receta. Intenta de nuevo.', false);
+                }
+            } catch (error) {
+                hideLoading();
+                addMessage('Error de conexión. Verifica tu conexión a internet.', false);
+                console.error('Error:', error);
+            }
+
+            sendBtn.disabled = false;
+        }
+
+        function sendQuickMessage(message) {
+            userInput.value = message;
+            sendMessage();
+        }
+    </script>
+</body>
+</html>
